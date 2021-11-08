@@ -1,14 +1,12 @@
 FROM ubuntu:20.04
 
-ADD ../requirements.txt ./
+ADD ./ /app/
+
+WORKDIR /app/
 
 RUN apt update \
 && apt install python3-pip -y \
 && pip install -r requirements.txt
-
-ADD ./ /app/
-
-WORKDIR /app/
 
 EXPOSE 8000
 
