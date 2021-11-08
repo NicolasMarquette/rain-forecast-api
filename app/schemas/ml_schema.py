@@ -8,4 +8,3 @@ class MlModels(str, Enum):
     dtc = "dtc"
     lr = "lr"
     gnb = "gnb"
-    
