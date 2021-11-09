@@ -5,8 +5,8 @@ RUN apt-get update \
 && pip3 install requests==2.26.0 \
 && apt-get clean
 
-COPY authentication_test.py /app/
+COPY predict_model_test.py /app/
 
 WORKDIR /app/
 
-CMD python3 authentication_test.py
+CMD python3 predict_model_test.py

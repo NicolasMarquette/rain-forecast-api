@@ -5,7 +5,7 @@ services:
     build:
       context: ../app
       dockerfile: Dockerfile
-    image: fastapi
+    image: mcaciolo/rain-forecast-api:latest
     container_name: fastapi
     networks: 
       - network_for_test
@@ -16,7 +16,7 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile-authentication
-    image: authentication
+    image: mcaciolo/test-authentication-rain-forecast:latest
     container_name: authentication_test
     depends_on:
       - fastapi
@@ -30,47 +30,23 @@ services:
       - EXPECTED_RESULT=200:200:200:400
       - LOG=1
 
-  # authorization_test:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile-authorization
-  #   image: authorization
-  #   container_name: authorization_test
-  #   depends_on:
-  #     - fastapi
-  #     - authentication_test
-  #   networks:
-  #     - network_for_test
-  #   volumes:
-  #     - ./log/authorization:/app/log
-  #   environment:
-  #     - USER_NAME=alice:bob
-  #     - PASSWORD=wonderland:builder
-  #     - VERSION=v1:v2
-  #     - EXPECTED_RESULT=200:200:200:403
-  #     - LOG=1
-
-  # content_test:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile-content
-  #   image: content
-  #   container_name: content_test
-  #   depends_on:
-  #     - fastapi
-  #     - authentication_test
-  #     - authorization_test
-  #   networks:
-  #     - network_for_test
-  #   volumes:
-  #     - ./log/content:/app/log
-  #   environment:
-  #     - USER_NAME=alice
-  #     - PASSWORD=wonderland
-  #     - VERSION=v1:v2
-  #     - SENTENCE=life is beautiful:that sucks
-  #     - EXPECTED_RESULT=POSITIF:NEGATIF
-  #     - LOG=1
+  predict_model_test:
+    build: 
+      context: .
+      dockerfile: Dockerfile-predict_model
+    image: mcaciolo/test-predict-model-rain-forecast:latest
+    container_name: predict-model-test
+    depends_on:
+      - fastapi
+    networks:
+      - network_for_test
+    volumes:
+      - ./log:/app/log
+    environment:
+      - API_ADRESS=fastapi
+      - API_PORT=8000
+      - LOG=1
+      - API_LOG_DIR=./log
 
 networks:
   network_for_test:

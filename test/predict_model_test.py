@@ -63,7 +63,7 @@ def unit_test(n, username, password, data, model, response_expected, output_expe
 
     # impression dans un fichier
     if file_log:
-        with open(api_log_dir + '/api_test.log', 'a') as file:
+        with open(api_log_dir + '/predict_model_test.log', 'a') as file:
             file.write(output)
 
 file_log = (os.environ.get('LOG') == str(1))
