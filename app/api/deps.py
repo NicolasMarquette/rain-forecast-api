@@ -94,6 +94,9 @@ def get_current_admin_user(current_user: user_schema.User = Depends(get_current_
     Raise
     -----
     HTTPException : 401
+        Not enough permissions if attempting to access an endpoint 
+        without the correct authorization.
+    HTTPException : 403
         Not authorized if the user does not have the admin rights.
     
     Return
@@ -103,7 +106,7 @@ def get_current_admin_user(current_user: user_schema.User = Depends(get_current_
     """
     if not current_user.admin:
         raise HTTPException(
-            status_code=401, 
+            status_code=403, 
             detail="The user doesn't have enough privileges",
         )
     return current_user

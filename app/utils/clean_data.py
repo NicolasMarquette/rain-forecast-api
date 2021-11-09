@@ -38,19 +38,22 @@ def clean_data(data):
             'No'    : 0
         }
 
-        df = data.drop(["Evaporation", "Sunshine", "Cloud9am", "Cloud3pm"], axis=1)
-        df = df.replace(dict_val)
+        try:
+            data = data.drop(["Evaporation", "Sunshine", "Cloud9am", "Cloud3pm"], axis=1)
+        except: 
+            pass
+        data = data.replace(dict_val)
 
         new_df = pd.DataFrame()
-        for location in df.index.get_level_values(0).unique():
-            df_location = df.loc[location]
+        for location in data.Location.unique():
+            df_location = data[data["Location"] == location]
+            df_location = df_location.set_index(['Date'])
             df_location.index = pd.DatetimeIndex(df_location.index)
-            # Drop first line, if first line is a Nan.
             df_location = df_location.interpolate(method='time').dropna().reset_index()
             df_location['Location'] = location
             new_df = pd.concat([new_df, df_location])
-        df = new_df.set_index(['Location', 'Date'])
+        
+        data = new_df.set_index(['Date', 'Location'])
+        data['Month'] = data.index.get_level_values(0).month
 
-        df['Month'] = df.index.get_level_values(1).month
-
-        return df
+        return data

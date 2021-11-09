@@ -36,10 +36,11 @@ app = FastAPI(
             "name" : "predict",
             "description": "functions to predict from a model of machine learning"
         },
-        {
-            "name": "admins",
-            "description": "functions for the admins"
-        },
+        # To be developped...
+        # {
+        #     "name": "admins",
+        #     "description": "functions for the admins"
+        # },
         {
             "name": "login",
             "description": "function to login"

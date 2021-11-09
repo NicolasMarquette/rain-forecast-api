@@ -3,6 +3,6 @@
 RESPONSES = {
     400: {"description": "Incorrect username or password"},
     401: {"description": "Not authenticated"},
-    401: {"description": "The user doesn't have enough privileges"},
-    403: {"description": "Could not validate credentials"},
+    403: {"description": "Incorrect rights"},
+    500: {"description": "Incorrect data format"}
 }

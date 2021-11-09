@@ -2,58 +2,27 @@
 
 import json
 from os import stat
+import warnings
+
 import joblib
 import pandas as pd
 from fastapi import APIRouter, File
 from fastapi.datastructures import UploadFile
 from fastapi.params import Depends
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 
 from sklearn.metrics import balanced_accuracy_score, accuracy_score
 from datetime import timedelta
 
 from api import deps
-from schemas import user_schema, predict_schema, ml_schema, weather_data_schema
+from schemas import user_schema, predict_schema, ml_schema, weather_data_schema, errors_schema
+from utils import clean_data
 
 
 router = APIRouter()
 
 
-@router.post("/clean",
-        name="Return the prediction for a cleaned csv dataset.",
-        #response_model=predict_schema.Prediction,
-)
-async def get_ml_performance(
-        models: ml_schema.MlModels,
-        file: UploadFile = File(..., description="csv file"),
-        current_user: user_schema.User = Depends(deps.get_current_user)
-):
-    """Get the performance of the specified machine learning model."""
-    data = pd.read_csv(file.file, index_col=[1,0])
-    model = joblib.load(f"./ml-models/{models}.pickle") # a tester
-    predict = model.predict(data)
-    pred_list = predict.tolist()
-    pred_json = json.dumps(pred_list)
-#     pred_data = pd.DataFrame(predict).to_json(indent=2)
-    result = {
-            "model": models,
-            "data": pred_json
-    }
-    return result
-
-# @router.post("/one/<models>",
-#         name="Return the prediction for a data input.",
-#         response_model=predict_schema.Prediction,
-# )
-# async def get_ml_performance(
-#         models: ml_schema.MlModels,
-#         file: UploadFile = File(..., description="csv file"),
-#         current_user: user_schema.User = Depends(deps.get_current_user)
-# ):
-
-#     return result
-
-@router.post("")
+@router.post("", responses=errors_schema.RESPONSES)
 async def predict_rain_tomorrow(
         models : ml_schema.MlModels,
         weather_data : weather_data_schema.WeatherData,
@@ -73,7 +42,7 @@ async def predict_rain_tomorrow(
     try:
             df['Month'] = pd.to_datetime(df.index.get_level_values(1)).month
     except:
-            raise HTTPException(status_code=400, detail='Bad data format in one of the Date Field (field 1)')
+            raise HTTPException(status_code=500, detail='Bad data format in one of the Date Field (field 1)')
 
 
 
@@ -117,3 +86,88 @@ async def predict_rain_tomorrow(
 
     return {'RainTomorrow' : df_out.to_dict(orient='split')['data']}
 
+
+@router.post("/clean",
+        name="Return the prediction for a cleaned csv dataset.",
+        response_model=predict_schema.Prediction,
+        responses=errors_schema.RESPONSES,
+)
+async def get_ml_performance(
+        models: ml_schema.MlModels,
+        file: UploadFile = File(..., description="csv file"),
+        current_user: user_schema.User = Depends(deps.get_current_user)
+):
+    """"Get the predicted rain for tomorrow basing on weather data from cleaned csv."""
+    data = pd.read_csv(file.file, index_col=[1,0])
+    
+    with open(f"ml-models/{models}.pickle", "rb") as file:
+            model = joblib.load(file)
+    
+    try:
+        warnings.filterwarnings("ignore")
+        predict = model.predict(data)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Incorrect data format: the data is not cleaned.",
+        )
+    
+    pred_list = predict.tolist()
+    
+    list_keys = list(
+            (pd.to_datetime(data.index.get_level_values(0)) + timedelta(days=1)).strftime('%Y-%m-%d')
+            + '/' + data.index.get_level_values(1)
+    )
+    
+    pred_result = list()
+    for keys, pred in zip(list_keys, pred_list):
+        pred_result.append({keys: 'Yes' if pred==1 else 'No'})
+    result = {
+            "model": models,
+            "data": pred_result
+    }
+    return result
+
+
+@router.post("/raw",
+        name="Return the prediction for a raw csv dataset.",
+        response_model=predict_schema.Prediction,
+        responses=errors_schema.RESPONSES,
+)
+async def get_ml_performance(
+        models: ml_schema.MlModels,
+        file: UploadFile = File(..., description="csv file"),
+        current_user: user_schema.User = Depends(deps.get_current_user)
+):
+    """Get the predicted rain for tomorrow basing on weather data from raw csv."""
+    df = pd.read_csv(file.file)
+    
+    data = clean_data.clean_data(df)
+    
+    with open(f"ml-models/{models}.pickle", "rb") as file:
+            model = joblib.load(file)
+    
+    try:
+        warnings.filterwarnings("ignore")
+        predict = model.predict(data)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Incorrect data format: the data is not cleaned.",
+        )
+        
+    pred_list = predict.tolist()
+    
+    list_keys = list(
+            (pd.to_datetime(data.index.get_level_values(0)) + timedelta(days=1)).strftime('%Y-%m-%d')
+            + '/' + data.index.get_level_values(1)
+    )
+    
+    pred_result = list()
+    for keys, pred in zip(list_keys, pred_list):
+        pred_result.append({keys: 'Yes' if pred==1 else 'No'})
+    result = {
+            "model": models,
+            "data": pred_result
+    }
+    return result
