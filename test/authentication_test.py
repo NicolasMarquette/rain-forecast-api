@@ -15,21 +15,22 @@ api_password = os.environ.get("PASSWORD").split(':')
 expected_result = os.environ.get("EXPECTED_RESULT").split(':')
 
 # itération pour les tests d'authentification
-for u, p, e in zip(api_username, api_password, expected_result):
+for username, password, expected in zip(api_username, api_password, expected_result):
     # requête
-    r = requests.get(
+    r = requests.post(
         url=f'http://{api_address}:{api_port}/api/v1/login/access-token',
-        params= {
-            'username': f'{u}',
-            'password': f'{p}'
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        data= {
+            'username': f'{username}',
+            'password': f'{password}',
         }
-    )
+)
 
     # statut de la requête
     status_code = r.status_code
 
     # affichage des résultats
-    if status_code == int(e):
+    if status_code == int(expected):
         test_status = 'SUCCESS'
     else:
         test_status = 'FAILURE'
@@ -41,10 +42,10 @@ for u, p, e in zip(api_username, api_password, expected_result):
     ============================
 
     request done at "/permissions"
-    | username="{u}"
-    | password="{p}"
+    | username="{username}"
+    | password="{password}"
 
-    expected result = {e}
+    expected result = {expected}
     actual restult = {status_code}
 
     ==>  {test_status}
