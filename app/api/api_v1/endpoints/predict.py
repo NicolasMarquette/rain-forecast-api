@@ -19,7 +19,7 @@ from schemas import user_schema, predict_schema, ml_schema, weather_data_schema
 router = APIRouter()
 
 
-@router.post("/clean/<models>",
+@router.post("/clean",
         name="Return the prediction for a cleaned csv dataset.",
         #response_model=predict_schema.Prediction,
 )
@@ -53,7 +53,7 @@ async def get_ml_performance(
 
 #     return result
 
-@router.post("/<models>/")
+@router.post("")
 async def predict_rain_tomorrow(
         models : ml_schema.MlModels,
         weather_data : weather_data_schema.WeatherData,
