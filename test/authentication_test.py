@@ -3,9 +3,9 @@ import requests
 
 
 # définition de l'adresse de l'API
-api_address = "fastapi"
+api_address = os.environ.get("API_ADRESS")
 # port de l'API
-api_port = 8000
+api_port = os.environ.get("API_PORT")
 
 # définition de l'username
 api_username = os.environ.get("USER_NAME").split(':')
@@ -37,18 +37,18 @@ for username, password, expected in zip(api_username, api_password, expected_res
 
     # Affichage du test
     output = f'''
-    ============================
-        Authentication test
-    ============================
+============================
+    Authentication test
+============================
 
-    request done at "/permissions"
-    | username="{username}"
-    | password="{password}"
+request done at "/api/v1/login/access-token"
+| username="{username}"
+| password="{password}"
 
-    expected result = {expected}
-    actual restult = {status_code}
+expected result = {expected}
+actual restult = {status_code}
 
-    ==>  {test_status}
+==>  {test_status}
 
     '''
     print(output)
