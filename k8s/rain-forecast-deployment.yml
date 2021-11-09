@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rain-forecast-deployment
+  labels:
+    app: rain-forecast-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: rain-forecast-api
+  template:
+    metadata:
+      labels:
+        app: rain-forecast-api
+    spec:
+      containers:
+      - name: fastapi
+        image: mcaciolo/rain-forecast-api:latest
+        ports:
+        - containerPort: 8000
+
+
